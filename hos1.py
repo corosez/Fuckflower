@@ -499,7 +499,7 @@ class ScriptManager:
         filename = os.path.basename(file_path)
         
         if script_type == 'python':
-            return ['python3', filename]
+            return [sys.executable, filename]
         elif script_type == 'shell':
             return ['bash', filename]
         elif script_type == 'javascript':
@@ -2645,17 +2645,20 @@ Choose an option below:"""
 
 def main():
     """Main function"""
+    bot = TelegramBot()
+
+    # Handle shutdown gracefully
+    def signal_handler(signum, frame):
+        logger.info("🛑 Received shutdown signal. Stopping all scripts...")
+        bot.script_manager.stop_all_scripts()
+        logger.info("✅ All scripts stopped. Exiting now.")
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     try:
-        # Handle shutdown gracefully
-        def signal_handler(signum, frame):
-            logger.info("🛑 Received shutdown signal")
-            sys.exit(0)
-        
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
-        
         # Start the bot
-        bot = TelegramBot()
         bot.run()
         
     except KeyboardInterrupt:
